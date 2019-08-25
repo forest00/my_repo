@@ -259,7 +259,7 @@ namespace myWindow
     //---------------------------------------------------------------------------------------------------------
     Button::Button()
         : Control()
-        , onPush(nullptr)
+        , onClick(nullptr)
     {
 
     }
@@ -297,9 +297,9 @@ namespace myWindow
         switch (code)
         {
         case BN_CLICKED:
-            if (onPush != nullptr)
+            if (onClick != nullptr)
             {
-                onPush();
+                onClick(this);
             }
             break;
         default:

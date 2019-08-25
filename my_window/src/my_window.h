@@ -69,9 +69,11 @@ namespace myWindow
         virtual auto getInstanceHandle()const->const HINSTANCE;
         //ウィンドウハンドル取得
         virtual auto getWindowHandle()->HWND;
+        //ウィンドウハンドル取得(const)
         virtual auto getWindowHandle()const->const HWND;
         //親ウィンドウ取得
         virtual auto getParent()->Window *;
+        //親ウィンドウ取得(const)
         virtual auto getParent()const->const Window *;
     public://基本操作
         //Visible取得
@@ -183,6 +185,6 @@ namespace myWindow
     protected://オーバーライドした
         virtual auto onControllCommand(WORD code, WORD id)->LRESULT override;
     public://メンバー変数
-        void (*onPush)(void);
+        void (*onClick)(Button *button);
     };
 }

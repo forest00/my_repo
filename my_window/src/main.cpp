@@ -17,25 +17,25 @@ protected://オーバーライドした
     virtual auto onPaint(WPARAM wParam, LPARAM lParam)->LRESULT override;
     virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT override;
 protected://アクション
-    static auto action1()->void;
-    static auto action2()->void;
-    static auto action3()->void;
-    static auto action4()->void;
-    static auto action5()->void;
-    static auto action6()->void;
-    static auto action7()->void;
+    static auto action1(myWindow::Button *button)->void;
+    static auto action2(myWindow::Button *button)->void;
+    static auto action3(myWindow::Button *button)->void;
+    static auto action4(myWindow::Button *button)->void;
+    static auto action5(myWindow::Button *button)->void;
+    static auto action6(myWindow::Button *button)->void;
+    static auto action7(myWindow::Button *button)->void;
 protected://メンバー変数
     myWindow::Button button;
     myWindow::Button button2;
-    static int u;
+public:
+    int u;
 };
-
-decltype(MyTestWindow::u) MyTestWindow::u;
 
 MyTestWindow::MyTestWindow()
     : WindowWithControls()
     , button()
     , button2()
+    , u()
 {
 
 }
@@ -69,37 +69,79 @@ auto MyTestWindow::create(const tstring &_windowClassName, HINSTANCE _instanceHa
     RECT thisRect;
     GetWindowRect(getWindowHandle(), &thisRect);
     button.create(TEXT("保存"), thisRect.right / 2, thisRect.bottom / 2, 100, 64, this);
-    button.onPush = MyTestWindow::action1;
+    button.onClick = MyTestWindow::action1;
     button2.create(TEXT("読み込み"), thisRect.right / 2 + 100, thisRect.bottom / 2 + 64, 100, 64, this);
-    button2.onPush = MyTestWindow::action2;
+    button2.onClick = MyTestWindow::action2;
 }
-void MyTestWindow::action1()
+void MyTestWindow::action1(myWindow::Button *button)
 {
-    u = 1;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 1;
 }
-void MyTestWindow::action2()
+void MyTestWindow::action2(myWindow::Button *button)
 {
-    u = 2;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 2;
 }
-void MyTestWindow::action3()
+void MyTestWindow::action3(myWindow::Button *button)
 {
-    u = 3;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 3;
 }
-void MyTestWindow::action4()
+void MyTestWindow::action4(myWindow::Button *button)
 {
-    u = 4;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 4;
 }
-void MyTestWindow::action5()
+void MyTestWindow::action5(myWindow::Button *button)
 {
-    u = 5;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 5;
 }
-void MyTestWindow::action6()
+void MyTestWindow::action6(myWindow::Button *button)
 {
-    u = 6;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 6;
 }
-void MyTestWindow::action7()
+void MyTestWindow::action7(myWindow::Button *button)
 {
-    u = 7;
+    auto parent = button->getParent();
+    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
+    if (trueParent == nullptr)
+    {
+        return;
+    }
+    trueParent->u = 7;
 }
 auto MyTestWindow::onCreate()->LRESULT
 {
@@ -116,7 +158,7 @@ auto MyTestWindow::onPaint(WPARAM, LPARAM)->LRESULT
     HDC hdc;
     PAINTSTRUCT ps;
     hdc = BeginPaint(getWindowHandle(), &ps);
-    tstring ss = std::to_wstring(u);
+    tstring ss = to_tstring(u);
     TextOut(hdc, 0, 0, ss.c_str(), ss.length());
     EndPaint(getWindowHandle(), &ps);
     return 0;
