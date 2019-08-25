@@ -153,8 +153,8 @@ namespace myWindow
     public://コンストラクタとデストラクタ
         WindowWithControls(const WindowWithControls &) = delete;
         WindowWithControls &operator=(const WindowWithControls &) = delete;
-        WindowWithControls();
-        ~WindowWithControls();
+        WindowWithControls() = default;
+        virtual ~WindowWithControls() = 0;
     protected://オーバーライドした
         virtual auto onCommand(WPARAM wParam, LPARAM lParam)->LRESULT override;
     };
@@ -165,9 +165,10 @@ namespace myWindow
     public://コンストラクタとデストラクタ
         Control(const Control &) = delete;
         Control &operator=(const Control &) = delete;
-        Control();
-        ~Control();
+        Control() = default;
+        ~Control() = default;
     public://オーバーライドする
+        //自分にイベントが渡ってきたときの処理
         virtual auto onControllCommand(WORD code, WORD id)->LRESULT = 0;
     };
 
@@ -177,14 +178,15 @@ namespace myWindow
     public://コンストラクタとデストラクタ
         Button(const Button &) = delete;
         Button &operator=(const Button &) = delete;
-        Button();
-        ~Button();
+        Button() = default;
+        virtual ~Button() = default;
     public://超基本
         //ウィンドウ生成
         virtual auto create(const tstring &_caption, int _x, int _y, int _width, int _height, Window *_parent)->void;
     protected://オーバーライドした
         virtual auto onControllCommand(WORD code, WORD id)->LRESULT override;
-    public://メンバー変数
-        void (*onClick)(Button *button);
+    public://オーバーライドする
+        //自身がクリックされた時の処理
+        virtual auto onClick(WORD id)->LRESULT = 0;
     };
 }

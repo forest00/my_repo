@@ -203,8 +203,8 @@ namespace myWindow
         case WM_NOTIFY:             return onNotify(wParam, lParam);
         case WM_DROPFILES:          return onDropFiles(wParam, lParam);
         case WM_TIMER:              return onTimer(wParam, lParam);
+        default:                    return DefWindowProc(getWindowHandle(), message, wParam, lParam);
         }
-        return DefWindowProc(getWindowHandle(), message, wParam, lParam);
     }
     auto Window::onCreate()->LRESULT { return 0; }
     auto Window::onDestroy()->LRESULT { return 0; }
@@ -229,14 +229,9 @@ namespace myWindow
     auto Window::onDropFiles(WPARAM, LPARAM)->LRESULT { return 0; }
     auto Window::onTimer(WPARAM, LPARAM)->LRESULT { return 0; }
     //---------------------------------------------------------------------------------------------------------
-    WindowWithControls::WindowWithControls()
-        : Window()
-    {
-
-    }
     WindowWithControls::~WindowWithControls()
     {
-
+    
     }
     auto WindowWithControls::onCommand(WPARAM wParam, LPARAM lParam)->LRESULT
     {
@@ -247,26 +242,6 @@ namespace myWindow
         return controllWindow->onControllCommand(code, id);
     }
     //---------------------------------------------------------------------------------------------------------
-    Control::Control()
-        : Window()
-    {
-
-    }
-    Control::~Control()
-    {
-
-    }
-    //---------------------------------------------------------------------------------------------------------
-    Button::Button()
-        : Control()
-        , onClick(nullptr)
-    {
-
-    }
-    Button::~Button()
-    {
-
-    }
     auto Button::create(const tstring &_caption, int _x, int _y, int _width, int _height, Window *_parent)->void
     {
         auto exStyle = 0;
@@ -292,20 +267,13 @@ namespace myWindow
         onCreate();
         setVisible(true);
     }
-    auto Button::onControllCommand(WORD code, WORD)->LRESULT
+    auto Button::onControllCommand(WORD code, WORD id)->LRESULT
     {
         switch (code)
         {
-        case BN_CLICKED:
-            if (onClick != nullptr)
-            {
-                onClick(this);
-            }
-            break;
-        default:
-            break;
+        case BN_CLICKED: return onClick(id);
+        default: return 0;
         }
-        return 0;
     }
     //---------------------------------------------------------------------------------------------------------
 }

@@ -16,32 +16,62 @@ protected://オーバーライドした
     virtual auto onDestroy()->LRESULT override;
     virtual auto onPaint(WPARAM wParam, LPARAM lParam)->LRESULT override;
     virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT override;
-protected://アクション
-    static auto action1(myWindow::Button *button)->void;
-    static auto action2(myWindow::Button *button)->void;
-    static auto action3(myWindow::Button *button)->void;
-    static auto action4(myWindow::Button *button)->void;
-    static auto action5(myWindow::Button *button)->void;
-    static auto action6(myWindow::Button *button)->void;
-    static auto action7(myWindow::Button *button)->void;
 protected://メンバー変数
-    myWindow::Button button;
-    myWindow::Button button2;
+    myWindow::Button *saveButton;
+    myWindow::Button *loadButton;
 public:
     int u;
 };
 
+//テスト用SaveButton
+class SaveButton : public myWindow::Button
+{
+public://コンストラクタとデストラクタ
+    SaveButton(const SaveButton &) = delete;
+    SaveButton &operator=(const SaveButton &) = delete;
+    SaveButton() = default;
+    virtual ~SaveButton() = default;
+protected://オーバーライドした
+    virtual auto onClick(WORD id)->LRESULT override;
+};
+auto SaveButton::onClick(WORD)->LRESULT
+{
+    auto trueParent = reinterpret_cast<MyTestWindow *>(getParent());
+    trueParent->u += 10;
+    return 0;
+}
+
+//LoadButton for Test
+class LoadButton : public myWindow::Button
+{
+public://コンストラクタとデストラクタ
+    LoadButton(const LoadButton &) = delete;
+    LoadButton &operator=(const LoadButton &) = delete;
+    LoadButton() = default;
+    virtual ~LoadButton() = default;
+protected://オーバーライドした
+    virtual auto onClick(WORD id)->LRESULT override;
+};
+auto LoadButton::onClick(WORD)->LRESULT
+{
+    auto trueParent = reinterpret_cast<MyTestWindow *>(getParent());
+    trueParent->u += 1000;
+    return 0;
+}
+
 MyTestWindow::MyTestWindow()
     : WindowWithControls()
-    , button()
-    , button2()
+    , saveButton()
+    , loadButton()
     , u()
 {
-
+    saveButton = new SaveButton;
+    loadButton = new LoadButton;
 }
 MyTestWindow::~MyTestWindow()
 {
-
+    delete saveButton;
+    delete loadButton;
 }
 auto MyTestWindow::create(const tstring &_windowClassName, HINSTANCE _instanceHandle, const tstring &_name, int _x, int _y, int _width, int _height)->void
 {
@@ -68,80 +98,8 @@ auto MyTestWindow::create(const tstring &_windowClassName, HINSTANCE _instanceHa
     setVisible(true);
     RECT thisRect;
     GetWindowRect(getWindowHandle(), &thisRect);
-    button.create(TEXT("保存"), thisRect.right / 2, thisRect.bottom / 2, 100, 64, this);
-    button.onClick = MyTestWindow::action1;
-    button2.create(TEXT("読み込み"), thisRect.right / 2 + 100, thisRect.bottom / 2 + 64, 100, 64, this);
-    button2.onClick = MyTestWindow::action2;
-}
-void MyTestWindow::action1(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 1;
-}
-void MyTestWindow::action2(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 2;
-}
-void MyTestWindow::action3(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 3;
-}
-void MyTestWindow::action4(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 4;
-}
-void MyTestWindow::action5(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 5;
-}
-void MyTestWindow::action6(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 6;
-}
-void MyTestWindow::action7(myWindow::Button *button)
-{
-    auto parent = button->getParent();
-    auto trueParent = dynamic_cast<MyTestWindow *>(parent);
-    if (trueParent == nullptr)
-    {
-        return;
-    }
-    trueParent->u = 7;
+    saveButton->create(TEXT("保存"), thisRect.right / 2, thisRect.bottom / 2, 100, 64, this);
+    loadButton->create(TEXT("読み込み"), thisRect.right / 2 + 100, thisRect.bottom / 2 + 64, 100, 64, this);
 }
 auto MyTestWindow::onCreate()->LRESULT
 {
@@ -168,6 +126,10 @@ auto MyTestWindow::onTimer(WPARAM, LPARAM)->LRESULT
     InvalidateRect(getWindowHandle(), nullptr, true);
     return 0;
 }
+
+
+
+
 
 //エントリーポイント
 int WINAPI WinMain(
