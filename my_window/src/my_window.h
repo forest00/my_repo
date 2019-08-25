@@ -168,7 +168,7 @@ namespace myWindow
         Control() = default;
         ~Control() = default;
     public://オーバーライドする
-        //自分にイベントが渡ってきたときの処理
+        //イベントが渡ってきたときの処理
         virtual auto onControllCommand(WORD code, WORD id)->LRESULT = 0;
     };
 
@@ -186,7 +186,7 @@ namespace myWindow
     protected://オーバーライドした
         virtual auto onControllCommand(WORD code, WORD id)->LRESULT override;
     public://オーバーライドする
-        //自身がクリックされた時の処理
+        //クリックされた時の処理
         virtual auto onClick(WORD id)->LRESULT = 0;
     };
 }
