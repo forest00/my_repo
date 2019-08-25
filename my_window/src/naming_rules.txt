@@ -1,0 +1,4 @@
+命名規則
+ファイル名.......snake_case
+型の名前.........UpperCamelCase
+それ以外.........lowerCamelCase

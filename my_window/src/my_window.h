@@ -1,34 +1,53 @@
-#pragma once
-#include <string>
-#include <Windows.h>
-#include <tchar.h>
+//file:my_window.h
+//date:2019/08/25
+//auther:forest00
+//ウィンドウの扱いをするクラス群です
+//ウィンドウクラスはその名の通り、ウィンドウの分類を表すものだと理解
 
-using tstring = std::basic_string<TCHAR>;
+#pragma once
+#include "tstring.h"
+#include <Windows.h>
 
 namespace myWindow
 {
-    //ウィンドウクラス
-    //生成時に登録され、破棄時に登録解除される
-    //名前とHINSTANCEを保持している
-    //ウィンドウメッセージを振り分ける機能を持つ
-    //ウィンドウの拡張メモリGWLP_USERDATAにWindow *を格納しておく必要がある
-    class WindowClass
+    //共通ウィンドウクラス
+    class CommonWindowClass
     {
-    public:
-        WindowClass(const WindowClass &) = delete;
-        WindowClass &operator=(const WindowClass &) = delete;
-        //コンストラクタ
-        //生成と同時に登録される
-        WindowClass(tstring _name, HINSTANCE _instanceHandle);
-        //デストラクタ
-        //破棄と同時に登録解除される
-        ~WindowClass();
-    public:
+    public://コンストラクタとデストラクタ
+        CommonWindowClass(const CommonWindowClass &) = delete;
+        CommonWindowClass &operator=(const CommonWindowClass &) = delete;
+        CommonWindowClass();
+        virtual ~CommonWindowClass();
+    public://超基本
+        //登録
+        auto registerClass(const tstring &_name, HINSTANCE _instanceHandle)->void;
+        //登録解除(デストラクタでも呼ばれるので呼び忘れることはない。多分)
+        auto unregisterClass()->void;
+    public://基本操作
+        //名前取得
         virtual auto getName()const->const tstring &;
+        //HINSTANCE取得
         virtual auto getInstanceHandle()const->const HINSTANCE;
-    public:
-        static auto CALLBACK commonWindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)->LRESULT;
-    protected:
+    public://その他の静的関数
+        //ウィンドウ生成関数(CreateWindowEx)のラッパー関数です
+        //これを使う利点は、第二引数と第三引数がtstringになっていることです(あとマクロじゃない。やったね！)
+        static auto createWindow(
+            DWORD extendedWindowStyle,
+            const tstring &className,
+            const tstring &windowName,
+            DWORD windowStyle,
+            int x,
+            int y,
+            int width,
+            int height,
+            HWND parentWindowHandle,
+            HMENU menuHandle,
+            HINSTANCE instanceHandle,
+            void *param
+        )->HWND;
+        //ウィンドウプロシージャーです
+        static auto CALLBACK windowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)->LRESULT;
+    protected://メンバー変数
         tstring name;
         HINSTANCE instanceHandle;
     };
@@ -36,31 +55,45 @@ namespace myWindow
     //ウィンドウ基底クラス
     class Window
     {
-    protected:
+    public://コンストラクタとデストラクタ
         Window(const Window &) = delete;
         Window &operator=(const Window &) = delete;
-        //コンストラクタ
         Window();
-        //デストラクタ
-        virtual ~Window();
-    public:
-        //ウィンドウクラスの名前取得
+        virtual ~Window() = 0;
+    public://超基本
+        //ウィンドウ破棄
+        virtual auto destroy()->void;
+        //ウィンドウクラス名取得
         virtual auto getClassName()const->const tstring &;
-        //ウィンドウクラスのHINSTANCE取得
+        //ウィンドウクラスHINSTANCE取得
         virtual auto getInstanceHandle()const->const HINSTANCE;
-        //ハンドルの取り出し
+        //ウィンドウハンドル取得
         virtual auto getWindowHandle()->HWND;
         virtual auto getWindowHandle()const->const HWND;
-        //親ウィンドウの取り出し
+        //親ウィンドウ取得
         virtual auto getParent()->Window *;
         virtual auto getParent()const->const Window *;
-        //生成
-        virtual auto create(const tstring &_className, HINSTANCE _instanceHandle, HWND _parentWindowHandle, HMENU _menuHandle, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void;
-        //破棄
-        virtual auto destroy()->void;
+    public://基本操作
+        //Visible取得
+        virtual auto getVisible()const->bool;
+        //Enable取得
+        virtual auto getEnable()const->bool;
+        //Text取得
+        virtual auto getText()const->tstring;
+        //Position取得
+        virtual auto getPosition()const->POINT;
+        //Visible設定
+        virtual auto setVisible(bool newVisible)->void;
+        //Enable設定
+        virtual auto setEnable(bool newEnable)->void;
+        //Text設定
+        virtual auto setText(const tstring &newText)->void;
+        //Position設定
+        virtual auto setPosition(POINT newPosition)->void;
+    public://イベント処理
         //ウィンドウイベント振り分け機
         virtual auto windowProcedure(UINT message, WPARAM wParam, LPARAM lParam)->LRESULT;
-    protected:
+    protected://オーバーライドする
         //Window作成時メッセージ処理
         virtual auto onCreate()->LRESULT;
         //Window破棄時メッセージ処理
@@ -99,105 +132,57 @@ namespace myWindow
         virtual auto onCommand(WPARAM wParam, LPARAM lParam)->LRESULT;
         //キーボード処理
         virtual auto onKeyDown(WPARAM wParam, LPARAM lParam)->LRESULT;
-        //Window 通知処理
+        //Window通知処理
         virtual auto onNotify(WPARAM wParam, LPARAM lParam)->LRESULT;
-        //ドロップ処理
+        //ファイルドロップ処理
         virtual auto onDropFiles(WPARAM wParam, LPARAM lParam)->LRESULT;
         //タイマー処理
         virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT;
-    public:
-        //Visible設定
-        virtual auto setVisible(bool newVisible)->void;
-        //Enable設定
-        virtual auto setEnable(bool newEnable)->void;
-        //Text設定
-        virtual auto setText(const tstring &newText)->void;
-        //Position設定
-        virtual auto setPosition(POINT newPosition)->void;
-        //Visible取得
-        virtual auto getVisible()const->bool;
-        //Enable取得
-        virtual auto getEnable()const->bool;
-        //Text取得
-        virtual auto getText()const->tstring;
-        //Position取得
-        virtual auto getPosition()const->POINT;
-    protected:
-        tstring className;                  //ウィンドウクラスの名前取得
-        HINSTANCE instanceHandle;           //ウィンドウクラスのHINSTANCE取得
-        HWND windowHandle;                  //Windowハンドル
+    protected://メンバー変数
+        tstring className;                  //ウィンドウクラス名
+        HINSTANCE instanceHandle;           //ウィンドウクラスHINSTANCE
         Window *parent;                     //親Window
+        HWND windowHandle;                  //Windowハンドル
     };
 
-    //タイマーウィンドウ
-    //タイマー処理がオーバーライドされてる
-    class TimerWindow : public Window
+    //何かしらのコントロールを所有するウィンドウ
+    class WindowWithControls : public Window
     {
-    public:
-        TimerWindow(const TimerWindow &) = delete;
-        TimerWindow &operator=(const TimerWindow &) = delete;
-        TimerWindow(float _fps);
-        ~TimerWindow();
-    protected:
-        virtual auto onCreate()->LRESULT override;
-        virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT override;
-    public:
-        void (*onTick)(void);
-    protected:
-        float fps;
-    };
-
-    //メインウィンドウ
-    //GUIを持つことができる
-    class MainWindow : public TimerWindow
-    {
-    protected:
-        MainWindow(const MainWindow &) = delete;
-        MainWindow &operator=(const MainWindow &) = delete;
-        MainWindow(float _fps);
-        ~MainWindow();
-    public:
-        virtual auto create(WindowClass *_windowClass, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void;
-    protected:
-        virtual auto onDestroy()->LRESULT override;
-        virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT override;
-        virtual auto onPaint(WPARAM wParam, LPARAM lParam)->LRESULT override;
+    public://コンストラクタとデストラクタ
+        WindowWithControls(const WindowWithControls &) = delete;
+        WindowWithControls &operator=(const WindowWithControls &) = delete;
+        WindowWithControls();
+        ~WindowWithControls();
+    protected://オーバーライドした
         virtual auto onCommand(WPARAM wParam, LPARAM lParam)->LRESULT override;
-        virtual auto onPaintMain(HDC hdc)->void = 0;
     };
 
-    //グラフィカルなユーザーインターフェース
-    class GUI : public Window
+    //コントロール基底クラス
+    class Control : public Window
     {
-    protected:
-        GUI(const GUI &) = delete;
-        GUI &operator=(const GUI &) = delete;
-        GUI();
-        ~GUI();
-    public:
-        virtual auto create(Window *_parent, const tstring &_className, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void;
-    protected:
-        virtual auto onCommand(WPARAM wParam, LPARAM lParam)->LRESULT override;
-        virtual auto onGUICommand(WORD code, WORD id)->LRESULT = 0;
+    public://コンストラクタとデストラクタ
+        Control(const Control &) = delete;
+        Control &operator=(const Control &) = delete;
+        Control();
+        ~Control();
+    public://オーバーライドする
+        virtual auto onControllCommand(WORD code, WORD id)->LRESULT = 0;
     };
 
     //ボタン
-    //自分が押された時の処理が書かれてる
-    class Button : public GUI
+    class Button : public Control
     {
-    public:
+    public://コンストラクタとデストラクタ
         Button(const Button &) = delete;
         Button &operator=(const Button &) = delete;
-        Button(Window *_parent, RECT _rect, const tstring &caption);
+        Button();
         ~Button();
-    protected:
-        virtual auto onGUICommand(WORD code, WORD id)->LRESULT override;
-    public:
-        void (*onClick)(void);
-        void (*onDoubleClick)(void);
+    public://超基本
+        //ウィンドウ生成
+        virtual auto create(const tstring &_caption, int _x, int _y, int _width, int _height, Window *_parent)->void;
+    protected://オーバーライドした
+        virtual auto onControllCommand(WORD code, WORD id)->LRESULT override;
+    public://メンバー変数
         void (*onPush)(void);
-        void (*onUnpush)(void);
-        void (*onSetFocus)(void);
-        void (*onKillFocus)(void);
     };
 }

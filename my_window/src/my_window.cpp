@@ -3,13 +3,23 @@
 namespace myWindow
 {
     //---------------------------------------------------------------------------------------------------------
-    WindowClass::WindowClass(tstring _name, HINSTANCE _instanceHandle)
-        : name(_name)
-        , instanceHandle(_instanceHandle)
+    CommonWindowClass::CommonWindowClass()
+        : name()
+        , instanceHandle(nullptr)
     {
+
+    }
+    CommonWindowClass::~CommonWindowClass()
+    {
+        unregisterClass();
+    }
+    auto CommonWindowClass::registerClass(const tstring &_name, HINSTANCE _instanceHandle)->void
+    {
+        name = _name;
+        instanceHandle = _instanceHandle;
         WNDCLASS wndclass;
         wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-        wndclass.lpfnWndProc = WindowClass::commonWindowProcedure;
+        wndclass.lpfnWndProc = CommonWindowClass::windowProcedure;
         wndclass.cbClsExtra = 0;
         wndclass.cbWndExtra = 0;
         wndclass.hInstance = instanceHandle;
@@ -20,19 +30,49 @@ namespace myWindow
         wndclass.lpszClassName = name.c_str();
         RegisterClass(&wndclass);
     }
-    WindowClass::~WindowClass()
+    auto CommonWindowClass::unregisterClass()->void
     {
         UnregisterClass(getName().c_str(), getInstanceHandle());
     }
-    auto WindowClass::getName()const->const tstring &
+    auto CommonWindowClass::getName()const->const tstring &
     {
         return name;
     }
-    auto WindowClass::getInstanceHandle()const->const HINSTANCE
+    auto CommonWindowClass::getInstanceHandle()const->const HINSTANCE
     {
         return instanceHandle;
     }
-    auto CALLBACK WindowClass::commonWindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)->LRESULT
+    auto CommonWindowClass::createWindow(
+        DWORD extendedWindowStyle,
+        const tstring &className,
+        const tstring &windowName,
+        DWORD windowStyle,
+        int x,
+        int y,
+        int width,
+        int height,
+        HWND parentWindowHandle,
+        HMENU menuHandle,
+        HINSTANCE instanceHandle,
+        void *param
+    )->HWND
+    {
+        return CreateWindowEx(
+            extendedWindowStyle,
+            className.c_str(),
+            windowName.c_str(),
+            windowStyle,
+            x,
+            y,
+            width,
+            height,
+            parentWindowHandle,
+            menuHandle,
+            instanceHandle,
+            param
+        );
+    }
+    auto CALLBACK CommonWindowClass::windowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)->LRESULT
     {
         //拡張メモリ取得
         auto window = reinterpret_cast<Window *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
@@ -48,14 +88,23 @@ namespace myWindow
     Window::Window()
         : className()
         , instanceHandle(nullptr)
-        , windowHandle(nullptr)
         , parent(nullptr)
+        , windowHandle(nullptr)
     {
 
     }
     Window::~Window()
     {
         destroy();
+    }
+    auto Window::destroy()->void
+    {
+        if (windowHandle == nullptr)
+        {
+            return;
+        }
+        DestroyWindow(windowHandle);
+        windowHandle = nullptr;
     }
     auto Window::getClassName()const->const tstring &
     {
@@ -81,98 +130,15 @@ namespace myWindow
     {
         return parent;
     }
-    auto Window::create(const tstring &_className, HINSTANCE _instanceHandle, HWND _parentWindowHandle, HMENU _menuHandle, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void
-    {
-        className = _className;
-        instanceHandle = _instanceHandle;
-        auto &rect = _rect;
-        windowHandle = CreateWindowEx(
-            _exStyle,
-            className.c_str(),
-            _text.c_str(),
-            _style,
-            rect.left,
-            rect.top,
-            rect.right,
-            rect.bottom,
-            _parentWindowHandle,
-            _menuHandle,
-            instanceHandle,
-            nullptr
-        );
-        SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-        onCreate();
-        setVisible(true);
-    }
-    auto Window::destroy()->void
-    {
-        if (windowHandle == nullptr)
-        {
-            return;
-        }
-        DestroyWindow(windowHandle);
-        windowHandle = nullptr;
-    }
-    auto Window::windowProcedure(UINT message, WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        switch (message)
-        {
-        case WM_CREATE:             return onCreate();
-        case WM_DESTROY:            return onDestroy();
-        case WM_MOVE:               return onMove(wParam, lParam);
-        case WM_SIZE:               return onSize(wParam, lParam);
-        case WM_ACTIVATE:           return onActivate(wParam, lParam);
-        case WM_MOUSEMOVE:          return onMouseMove(wParam, lParam);
-        case WM_LBUTTONDOWN:        return onLButtonDown(wParam, lParam);
-        case WM_LBUTTONUP:          return onLButtonUP(wParam, lParam);
-        case WM_LBUTTONDBLCLK:      return onLButtonDblClk(wParam, lParam);
-        case WM_RBUTTONDOWN:        return onRButtonDown(wParam, lParam);
-        case WM_RBUTTONUP:          return onRButtonUP(wParam, lParam);
-        case WM_RBUTTONDBLCLK:      return onRButtonDblClk(wParam, lParam);
-        case WM_MBUTTONDOWN:        return onMButtonDown(wParam, lParam);
-        case WM_MBUTTONUP:          return onMButtonUP(wParam, lParam);
-        case WM_MBUTTONDBLCLK:      return onMButtonDblClk(wParam, lParam);
-        case WM_MOUSEHWHEEL:        return onMouseWheel(wParam, lParam);
-        case WM_PAINT:              return onPaint(wParam, lParam);
-        case WM_COMMAND:            return onCommand(wParam, lParam);
-        case WM_NOTIFY:             return onNotify(wParam, lParam);
-        case WM_DROPFILES:          return onDropFiles(wParam, lParam);
-        case WM_TIMER:              return onTimer(wParam, lParam);
-        }
-        return DefWindowProc(getWindowHandle(), message, wParam, lParam);
-    }
-    auto Window::onCreate()->LRESULT { return 0; }
-    auto Window::onDestroy()->LRESULT { return 0; }
-    auto Window::onMove(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onSize(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onActivate(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onMouseMove(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onLButtonDown(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onLButtonUP(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onLButtonDblClk(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onRButtonDown(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onRButtonUP(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onRButtonDblClk(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onMButtonDown(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onMButtonUP(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onMButtonDblClk(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onMouseWheel(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onPaint(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onCommand(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onKeyDown(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onNotify(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onDropFiles(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
-    auto Window::onTimer(WPARAM wParam, LPARAM lParam)->LRESULT { return 0; }
     auto Window::setVisible(bool newVisible)->void
     {
-        auto windowHandle = getWindowHandle();
         if (newVisible)
         {
-            ShowWindow(windowHandle, SW_SHOW);
+            ShowWindow(getWindowHandle(), SW_SHOW);
         }
         else
         {
-            ShowWindow(windowHandle, SW_HIDE);
+            ShowWindow(getWindowHandle(), SW_HIDE);
         }
     }
     auto Window::setEnable(bool newEnable)->void
@@ -212,148 +178,128 @@ namespace myWindow
         point.y = rect.top;
         return point;
     }
-    //---------------------------------------------------------------------------------------------------------
-    TimerWindow::TimerWindow(float _fps)
-        : Window()
-        , onTick()
-        , fps(_fps)
+    auto Window::windowProcedure(UINT message, WPARAM wParam, LPARAM lParam)->LRESULT
     {
-
-    }
-    TimerWindow::~TimerWindow()
-    {
-
-    }
-    auto TimerWindow::onCreate()->LRESULT
-    {
-        SetTimer(windowHandle, 0, static_cast<UINT>(1000.0f / fps), nullptr);
-        return 0;
-    }
-    auto TimerWindow::onTimer(WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        if (onTick != nullptr)
+        switch (message)
         {
-            onTick();
+        case WM_CREATE:             return onCreate();
+        case WM_DESTROY:            return onDestroy();
+        case WM_MOVE:               return onMove(wParam, lParam);
+        case WM_SIZE:               return onSize(wParam, lParam);
+        case WM_ACTIVATE:           return onActivate(wParam, lParam);
+        case WM_MOUSEMOVE:          return onMouseMove(wParam, lParam);
+        case WM_LBUTTONDOWN:        return onLButtonDown(wParam, lParam);
+        case WM_LBUTTONUP:          return onLButtonUP(wParam, lParam);
+        case WM_LBUTTONDBLCLK:      return onLButtonDblClk(wParam, lParam);
+        case WM_RBUTTONDOWN:        return onRButtonDown(wParam, lParam);
+        case WM_RBUTTONUP:          return onRButtonUP(wParam, lParam);
+        case WM_RBUTTONDBLCLK:      return onRButtonDblClk(wParam, lParam);
+        case WM_MBUTTONDOWN:        return onMButtonDown(wParam, lParam);
+        case WM_MBUTTONUP:          return onMButtonUP(wParam, lParam);
+        case WM_MBUTTONDBLCLK:      return onMButtonDblClk(wParam, lParam);
+        case WM_MOUSEHWHEEL:        return onMouseWheel(wParam, lParam);
+        case WM_PAINT:              return onPaint(wParam, lParam);
+        case WM_COMMAND:            return onCommand(wParam, lParam);
+        case WM_NOTIFY:             return onNotify(wParam, lParam);
+        case WM_DROPFILES:          return onDropFiles(wParam, lParam);
+        case WM_TIMER:              return onTimer(wParam, lParam);
         }
-        return 0;
+        return DefWindowProc(getWindowHandle(), message, wParam, lParam);
     }
+    auto Window::onCreate()->LRESULT { return 0; }
+    auto Window::onDestroy()->LRESULT { return 0; }
+    auto Window::onMove(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onSize(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onActivate(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onMouseMove(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onLButtonDown(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onLButtonUP(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onLButtonDblClk(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onRButtonDown(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onRButtonUP(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onRButtonDblClk(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onMButtonDown(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onMButtonUP(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onMButtonDblClk(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onMouseWheel(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onPaint(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onCommand(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onKeyDown(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onNotify(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onDropFiles(WPARAM, LPARAM)->LRESULT { return 0; }
+    auto Window::onTimer(WPARAM, LPARAM)->LRESULT { return 0; }
     //---------------------------------------------------------------------------------------------------------
-    MainWindow::MainWindow(float _fps)
-        : TimerWindow(_fps)
-    {
-
-    }
-    MainWindow::~MainWindow()
-    {
-
-    }
-    auto MainWindow::create(WindowClass *_windowClass, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void
-    {
-        Window::create(_windowClass->getName(), _windowClass->getInstanceHandle(), nullptr, nullptr, _text, _exStyle, _style, _rect);
-    }
-    auto MainWindow::onDestroy()->LRESULT
-    {
-        PostQuitMessage(0);
-        return 0;
-    }
-    auto MainWindow::onTimer(WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        auto windowHandle = getWindowHandle();
-        InvalidateRect(windowHandle, nullptr, true);
-        return 0;
-    }
-    auto MainWindow::onPaint(WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        auto windowHandle = getWindowHandle();
-        HDC hdc;
-        PAINTSTRUCT ps;
-        hdc = BeginPaint(windowHandle, &ps);
-        onPaintMain(hdc);
-        EndPaint(windowHandle, &ps);
-        return 0;
-    }
-    auto MainWindow::onCommand(WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        auto menu = reinterpret_cast<HMENU>(LOWORD(wParam));
-        auto gui = reinterpret_cast<GUI *>(menu);//ここtodo:どうにかする、親にメッセージ送りやがるからどうにもならんてmjd
-        //親はすべての子供が分かるようにするしかないねこれはねそうだね
-        return gui->windowProcedure(WM_COMMAND, wParam, lParam);
-    }
-    //---------------------------------------------------------------------------------------------------------
-    GUI::GUI()
+    WindowWithControls::WindowWithControls()
         : Window()
     {
 
     }
-    GUI::~GUI()
+    WindowWithControls::~WindowWithControls()
     {
 
     }
-    auto GUI::create(Window *_parent, const tstring &_className, const tstring &_text, DWORD _exStyle, DWORD _style, RECT _rect)->void
+    auto WindowWithControls::onCommand(WPARAM wParam, LPARAM lParam)->LRESULT
     {
-        Window::create(_className, _parent->getInstanceHandle(), _parent->getWindowHandle(), reinterpret_cast<HMENU>(this), _text, _exStyle, _style, _rect);
-    }
-    auto GUI::onCommand(WPARAM wParam, LPARAM lParam)->LRESULT
-    {
-        WORD code = HIWORD(wParam);
-        WORD id = LOWORD(wParam);
-        return onGUICommand(code, id);
+        auto code = HIWORD(wParam);
+        auto id = LOWORD(wParam);
+        auto controllWindowHandle = reinterpret_cast<HWND>(lParam);
+        auto controllWindow = reinterpret_cast<Control *>(GetWindowLongPtr(controllWindowHandle, GWLP_USERDATA));
+        return controllWindow->onControllCommand(code, id);
     }
     //---------------------------------------------------------------------------------------------------------
-    Button::Button(Window *_parent, RECT _rect, const tstring &caption)
-        : GUI()
-        , onClick(nullptr)
-        , onDoubleClick(nullptr)
-        , onPush(nullptr)
-        , onUnpush(nullptr)
-        , onSetFocus(nullptr)
-        , onKillFocus(nullptr)
+    Control::Control()
+        : Window()
     {
-        parent = _parent;
-        GUI::create(_parent, TEXT("BUTTON"), caption, 0, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_NOTIFY, _rect);
+
+    }
+    Control::~Control()
+    {
+
+    }
+    //---------------------------------------------------------------------------------------------------------
+    Button::Button()
+        : Control()
+        , onPush(nullptr)
+    {
+
     }
     Button::~Button()
     {
 
     }
-    auto Button::onGUICommand(WORD code, WORD id)->LRESULT
+    auto Button::create(const tstring &_caption, int _x, int _y, int _width, int _height, Window *_parent)->void
+    {
+        auto exStyle = 0;
+        auto style = WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON;
+        this->className = TEXT("BUTTON");
+        this->instanceHandle = _parent->getInstanceHandle();
+        this->parent = _parent;
+        this->windowHandle = CommonWindowClass::createWindow(
+            exStyle,
+            this->className,
+            _caption,
+            style,
+            _x,
+            _y,
+            _width,
+            _height,
+            _parent->getWindowHandle(),
+            nullptr,
+            this->instanceHandle,
+            nullptr
+        );
+        SetWindowLongPtr(windowHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+        onCreate();
+        setVisible(true);
+    }
+    auto Button::onControllCommand(WORD code, WORD)->LRESULT
     {
         switch (code)
         {
         case BN_CLICKED:
-            if (onClick != nullptr)
-            {
-                onClick();
-            }
-            break;
-        case BN_DOUBLECLICKED:
-            if (onDoubleClick != nullptr)
-            {
-                onDoubleClick();
-            }
-            break;
-        case BN_PUSHED:
             if (onPush != nullptr)
             {
                 onPush();
-            }
-            break;
-        case BN_UNPUSHED:
-            if (onUnpush != nullptr)
-            {
-                onUnpush();
-            }
-            break;
-        case BN_SETFOCUS:
-            if (onSetFocus != nullptr)
-            {
-                onSetFocus();
-            }
-            break;
-        case BN_KILLFOCUS:
-            if (onKillFocus != nullptr)
-            {
-                onKillFocus();
             }
             break;
         default:
@@ -361,4 +307,5 @@ namespace myWindow
         }
         return 0;
     }
+    //---------------------------------------------------------------------------------------------------------
 }
