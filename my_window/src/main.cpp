@@ -6,80 +6,45 @@ class MyTestWindow : public myWindow::WindowWithControls
 public://コンストラクタとデストラクタ
     MyTestWindow(const MyTestWindow &) = delete;
     MyTestWindow &operator=(const MyTestWindow &) = delete;
-    MyTestWindow();
-    virtual ~MyTestWindow();
+    MyTestWindow() = default;
+    virtual ~MyTestWindow() = default;
 public://超基本
     //ウィンドウ生成
     virtual auto create(const tstring &_windowClassName, HINSTANCE _instanceHandle, const tstring &_name, int _x, int _y, int _width, int _height)->void;
 protected://オーバーライドした
-    virtual auto onCreate()->LRESULT override;
     virtual auto onDestroy()->LRESULT override;
     virtual auto onPaint(WPARAM wParam, LPARAM lParam)->LRESULT override;
-    virtual auto onTimer(WPARAM wParam, LPARAM lParam)->LRESULT override;
+    virtual auto onCommandMain(WORD code, WORD id, myWindow::Control *controllWindow)->LRESULT override;
 protected://メンバー変数
-    myWindow::Button *saveButton;
-    myWindow::Button *loadButton;
-public:
-    int u;
+    myWindow::Label label1;
+    myWindow::Label label2;
+    myWindow::Label label3;
+    myWindow::Edit edit1;
+    myWindow::CheckBox checkBox1;
+    myWindow::CheckBox3State checkBox3State1;
+    myWindow::GroupBox groupBox1;
+    myWindow::RadioButton groupRadioButton1;
+    myWindow::RadioButton groupRadioButton2;
+    myWindow::RadioButton radioButton1;
+    myWindow::RadioButton radioButton2;
+    myWindow::Button button1;
+    myWindow::Button button2;
+    myWindow::ListBox listBox1;
+    myWindow::ComboBox comboBox1;
+    myWindow::ComboBox comboBox2;
+    myWindow::TrackBar trackBar1;
+    myWindow::Numeric numeric1;
+    myWindow::Numeric numeric2;
+    myWindow::Numeric numeric3;
 };
 
-//テスト用SaveButton
-class SaveButton : public myWindow::Button
-{
-public://コンストラクタとデストラクタ
-    SaveButton(const SaveButton &) = delete;
-    SaveButton &operator=(const SaveButton &) = delete;
-    SaveButton() = default;
-    virtual ~SaveButton() = default;
-protected://オーバーライドした
-    virtual auto onClick(WORD id)->LRESULT override;
-};
-auto SaveButton::onClick(WORD)->LRESULT
-{
-    auto trueParent = reinterpret_cast<MyTestWindow *>(getParent());
-    trueParent->u += 10;
-    return 0;
-}
-
-//LoadButton for Test
-class LoadButton : public myWindow::Button
-{
-public://コンストラクタとデストラクタ
-    LoadButton(const LoadButton &) = delete;
-    LoadButton &operator=(const LoadButton &) = delete;
-    LoadButton() = default;
-    virtual ~LoadButton() = default;
-protected://オーバーライドした
-    virtual auto onClick(WORD id)->LRESULT override;
-};
-auto LoadButton::onClick(WORD)->LRESULT
-{
-    auto trueParent = reinterpret_cast<MyTestWindow *>(getParent());
-    trueParent->u += 1000;
-    return 0;
-}
-
-MyTestWindow::MyTestWindow()
-    : WindowWithControls()
-    , saveButton()
-    , loadButton()
-    , u()
-{
-    saveButton = new SaveButton;
-    loadButton = new LoadButton;
-}
-MyTestWindow::~MyTestWindow()
-{
-    delete saveButton;
-    delete loadButton;
-}
 auto MyTestWindow::create(const tstring &_windowClassName, HINSTANCE _instanceHandle, const tstring &_name, int _x, int _y, int _width, int _height)->void
 {
     auto exStyle = WS_EX_COMPOSITED;
     auto style = WS_OVERLAPPEDWINDOW;
     this->className = _windowClassName;
     this->instanceHandle = _instanceHandle;
-    this->windowHandle = myWindow::CommonWindowClass::createWindow(
+    this->windowHandle = myWindow::Wrap::createWindow(
         exStyle,
         this->className,
         _name,
@@ -98,13 +63,97 @@ auto MyTestWindow::create(const tstring &_windowClassName, HINSTANCE _instanceHa
     setVisible(true);
     RECT thisRect;
     GetWindowRect(getWindowHandle(), &thisRect);
-    saveButton->create(TEXT("保存"), thisRect.right / 2, thisRect.bottom / 2, 100, 64, this);
-    loadButton->create(TEXT("読み込み"), thisRect.right / 2 + 100, thisRect.bottom / 2 + 64, 100, 64, this);
-}
-auto MyTestWindow::onCreate()->LRESULT
-{
-    SetTimer(getWindowHandle(), 0, 1000 / 60, nullptr);
-    return 0;
+    label1.create(TEXT("label1"), 0, 0, 500, 24, this, 0);
+    label2.create(TEXT("label2"), 0, 24, 500, 24, this, 1);
+    label3.create(TEXT("label3"), 0, 48, 500, 24, this, 2);
+    edit1.create(TEXT("edit1"), 0, 100, 500, 24, this, 3);
+    checkBox1.create(TEXT("checkBox1"), 0, 200, 500, 24, this, 4);
+    checkBox3State1.create(TEXT("checkBox3State1"), 0, 300, 500, 24, this, 5);
+    groupBox1.create(TEXT("groupBox1"), 0, 400, 500, 72 + 8, this, 6);
+    groupRadioButton1.create(TEXT("groupRadioButton1"), 10, 24, 480, 24, &groupBox1, 7);
+    groupRadioButton2.create(TEXT("groupRadioButton2"), 10, 48, 480, 24, &groupBox1, 8);
+    radioButton1.create(TEXT("radioButton1"), 0, 550, 500, 24, this, 9);
+    radioButton2.create(TEXT("radioButton2"), 0, 550 + 24, 500, 24, this, 10);
+    button1.create(TEXT("button1"), 0, 600, 100, 24, this, 11);
+    button2.create(TEXT("button2"), 0, 624, 100, 24, this, 12);
+    listBox1.create(TEXT("listBox1"), 500, 0, 300, 300, this, 13);
+    comboBox1.create(TEXT("comboBox1"), 500, 300, 300, 300, this, 14);
+    comboBox2.create(TEXT("comboBox2"), 500, 350, 300, 300, this, 15);
+    trackBar1.create(TEXT("trackBar1"), 500, 400, 300, 64, this, 16);
+    numeric1.create(TEXT("0.0"), 500, 500, 100, 24, this, 17);
+    numeric2.create(TEXT("10.0"), 500, 532, 100, 24, this, 18);
+    numeric3.create(TEXT("100.0"), 500, 564, 100, 32, this, 19);
+    listBox1.lbAddItem(TEXT("listItemA"));
+    listBox1.lbAddItem(TEXT("listItemB"));
+    listBox1.lbAddItem(TEXT("listItemC"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    listBox1.lbAddItem(TEXT("listItem"));
+    comboBox1.cbAddItem(TEXT("saaaAAA"));
+    comboBox1.cbAddItem(TEXT("bbbBBB0"));
+    comboBox1.cbAddItem(TEXT("bbbBBB1"));
+    comboBox1.cbAddItem(TEXT("bbbBBB2"));
+    comboBox1.cbAddItem(TEXT("bbbBBB3"));
+    comboBox1.cbAddItem(TEXT("bbbBBB4"));
+    comboBox1.cbAddItem(TEXT("bbbBBB5"));
+    comboBox1.cbAddItem(TEXT("bbbBBB6"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox1.cbAddItem(TEXT("cccCCC"));
+    comboBox2.cbAddItem(TEXT("saaaAAA"));
+    comboBox2.cbAddItem(TEXT("bbbBBB0"));
+    comboBox2.cbAddItem(TEXT("bbbBBB1"));
+    comboBox2.cbAddItem(TEXT("bbbBBB2"));
+    comboBox2.cbAddItem(TEXT("bbbBBB3"));
+    comboBox2.cbAddItem(TEXT("bbbBBB4"));
+    comboBox2.cbAddItem(TEXT("bbbBBB5"));
+    comboBox2.cbAddItem(TEXT("bbbBBB6"));
+    comboBox2.cbAddItem(TEXT("cccCCC"));
 }
 auto MyTestWindow::onDestroy()->LRESULT
 {
@@ -116,17 +165,28 @@ auto MyTestWindow::onPaint(WPARAM, LPARAM)->LRESULT
     HDC hdc;
     PAINTSTRUCT ps;
     hdc = BeginPaint(getWindowHandle(), &ps);
-    tstring ss = to_tstring(u);
-    TextOut(hdc, 0, 0, ss.c_str(), ss.length());
+    //HDCここから
+
+    //HDCここまで
     EndPaint(getWindowHandle(), &ps);
     return 0;
 }
-auto MyTestWindow::onTimer(WPARAM, LPARAM)->LRESULT
+auto MyTestWindow::onCommandMain(WORD code, WORD id, myWindow::Control *controllWindow)->LRESULT
 {
-    InvalidateRect(getWindowHandle(), nullptr, true);
+    int x = code;
+    int u = id;
+    auto f = to_tstring('\0');
+    if (controllWindow != nullptr)
+    {
+        f = controllWindow->getText();
+    }
+    auto s = TEXT("code : ") + to_tstring(x);
+    auto m = TEXT("id   : ") + to_tstring(u);
+    label1.setText(s);
+    label2.setText(m);
+    label3.setText(f);
     return 0;
 }
-
 
 
 
@@ -142,6 +202,8 @@ int WINAPI WinMain(
     UNREFERENCED_PARAMETER(prevInstanceHandle);
     UNREFERENCED_PARAMETER(cmdLine);
     UNREFERENCED_PARAMETER(cmdShow);
+    //コモンコントロールの初期化
+    InitCommonControls();
     //ウィンドウクラス登録
     myWindow::CommonWindowClass commonWindowClass;
     commonWindowClass.registerClass(TEXT("CommonWindowClass"), instanceHandle);
