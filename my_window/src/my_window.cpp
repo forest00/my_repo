@@ -309,6 +309,10 @@ namespace myWindow
     {
         SetWindowPos(getWindowHandle(), nullptr, newRect.left, newRect.top, newRect.right - newRect.left, newRect.bottom - newRect.top, SWP_NOZORDER | SWP_SHOWWINDOW);
     }
+    auto Window::redraw(bool erase)->void
+    {
+        InvalidateRect(getWindowHandle(), nullptr, erase);
+    }
     auto Window::windowProcedure(UINT message, WPARAM wParam, LPARAM lParam)->LRESULT
     {
         switch (message)

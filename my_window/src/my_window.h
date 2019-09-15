@@ -162,14 +162,16 @@ namespace myWindow
         virtual auto setVisible(bool newVisible)->void;
         //Enable設定
         virtual auto setEnable(bool newEnable)->void;
-        //Text設定
+        //Text設定(SetWindowText)
         virtual auto setText(const tstring &newText)->void;
-        //Pos設定
+        //Pos設定(SetWindowPos)
         virtual auto setPos(POINT newPos)->void;
-        //Size設定
+        //Size設定(SetWindowPos)
         virtual auto setSize(SIZE newSize)->void;
-        //Rect設定
+        //Rect設定(SetWindowPos)
         virtual auto setRect(RECT newRect)->void;
+        //InvalidateRect(windowHandle, nullptr, erase)を呼び出す
+        virtual auto redraw(bool erase)->void;
     public://イベント処理
         //ウィンドウイベント振り分け機
         virtual auto windowProcedure(UINT message, WPARAM wParam, LPARAM lParam)->LRESULT;
